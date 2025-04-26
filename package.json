@@ -14,6 +14,7 @@
     "author": "Justin Kim",
     "license": "ISC",
     "dependencies": {
+        "dotenv": "^16.5.0",
         "puppeteer": "^24.7.2"
     }
 }
