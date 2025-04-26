@@ -34,14 +34,36 @@ require('dotenv').config();
     await page.click('#Submit');
 
     await delay(3000); // wait for the page to load properly
-
     // close tab
     await page.close();
+
+    const numberOfPages = await getMaxPageCount(
+        'https://www.hiloenergie.com/EPiServer/Commerce/OrderManagement#/?type=Order&status=PendingTransferToCrm',
+        browser,
+        page
+    );
+    console.log(`Number of pages: ${numberOfPages}`);
+
+    const numberOfPages2 = await getMaxPageCount(
+        'https://www.hiloenergie.com/EPiServer/Commerce/OrderManagement#/?type=Order&status=SentToCrm&createdOn=Apr%2025%2C%202025-Apr%2026%2C%202025',
+        browser,
+        page
+    );
+    console.log(`Number of pages: ${numberOfPages2}`);
+
+    browser.close();
+})();
+
+function delay(time) {
+    return new Promise(function (resolve) {
+        setTimeout(resolve, time);
+    });
+}
+
+async function getMaxPageCount(url, browser, page) {
     page = await browser.newPage();
 
-    await page.goto(
-        'https://www.hiloenergie.com/EPiServer/Commerce/OrderManagement#/?type=Order&status=PendingTransferToCrm'
-    );
+    await page.goto(url);
 
     // wait for page to load
     await page.waitForSelector(
@@ -74,17 +96,6 @@ require('dotenv').config();
         return pageNumbers.length > 0 ? Math.max(...pageNumbers) : 1;
     });
 
-    console.log(`Number of pages: ${numberOfPages}`);
-
-    await page.close();
-    page = await browser.newPage();
-    await page.goto(
-        'https://www.hiloenergie.com/EPiServer/Commerce/OrderManagement#/?type=Order&status=SentToCrm&createdOn=Apr%2025%2C%202025-Apr%2026%2C%202025'
-    );
-})();
-
-function delay(time) {
-    return new Promise(function (resolve) {
-        setTimeout(resolve, time);
-    });
+    page.close();
+    return numberOfPages;
 }

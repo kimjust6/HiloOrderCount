@@ -1,5 +1,5 @@
 {
-    "name": "HiloPuppeteer",
+    "name": "hilo-puppeteer",
     "version": "1.0.0",
     "description": "parses the localization data from optimizely",
     "main": "src/app.js",
