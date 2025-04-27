@@ -22,11 +22,11 @@ require('dotenv').config();
     await page.waitForSelector('#Password');
     await page.waitForSelector('input[name="__RequestVerificationToken"]');
 
-    // Get the CSRF Token value
-    const csrfToken = await page.$eval(
-        'input[name="__RequestVerificationToken"]',
-        (el) => el.value
-    );
+    // // Get the CSRF Token value
+    // const csrfToken = await page.$eval(
+    //     'input[name="__RequestVerificationToken"]',
+    //     (el) => el.value
+    // );
 
     // Fill username and password
     await page.type('#UserName', 'justin.kim@verndale.com');
@@ -68,101 +68,104 @@ function delay(time) {
 }
 
 async function getMaxPageCount(url, browser, page) {
-    page = await browser.newPage();
+    try {
+        page = await browser.newPage();
 
-    await page.goto(url);
+        await page.goto(url);
 
-    // wait for page to load
-    await page.waitForSelector(
-        'li.push--sides button[aria-label="Next Page"]',
-        { visible: true }
-    );
-
-    // Scroll to bottom to make sure pagination loads
-    await page.evaluate(() => {
-        window.scrollTo(0, document.body.scrollHeight);
-    });
-
-    // 3. Find the highest page number and click it
-    const highestPage = await page.evaluate(() => {
-        const buttons = Array.from(
-            document.querySelectorAll('nav.oui-pagination-controls button')
+        // wait for page to load
+        await page.waitForSelector(
+            'li.push--sides button[aria-label="Next Page"]',
+            { visible: true, timeout: 15000 }
         );
 
-        let maxNum = 1;
-        let maxButton = null;
+        // Scroll to bottom to make sure pagination loads
+        await page.evaluate(() => {
+            window.scrollTo(0, document.body.scrollHeight);
+        });
 
-        for (const btn of buttons) {
-            const text = btn.innerText.trim();
-            const num = parseInt(text, 10);
-            if (!isNaN(num) && num > maxNum) {
-                maxNum = num;
-                maxButton = btn;
+        // 3. Find the highest page number and click it
+        const highestPage = await page.evaluate(() => {
+            const buttons = Array.from(
+                document.querySelectorAll('nav.oui-pagination-controls button')
+            );
+
+            let maxNum = 1;
+            let maxButton = null;
+
+            for (const btn of buttons) {
+                const text = btn.innerText.trim();
+                const num = parseInt(text, 10);
+                if (!isNaN(num) && num > maxNum) {
+                    maxNum = num;
+                    maxButton = btn;
+                }
             }
-        }
 
-        if (maxButton) {
-            maxButton.click();
-        }
+            if (maxButton) {
+                maxButton.click();
+            }
 
-        return maxNum;
-    });
-
-    // wait for the new page to load (aka there is new data)
-    const initialOrderNumber = await page.evaluate(() => {
-        const cell = document.querySelector(
-            'td.epi-uif-data-table-cell.mdc-data-table__cell.rmwc-data-table__cell span.orderNumberLink'
-        );
-        return cell ? cell.innerText.trim() : null;
-    });
-
-    // console.log(`Initial Order Number: ${initialOrderNumber}`);
-
-    // Now wait until it changes
-    await page.waitForFunction(
-        (initial) => {
+            return maxNum;
+        });
+        // wait for the new page to load (aka there is new data)
+        const initialOrderNumber = await page.evaluate(() => {
             const cell = document.querySelector(
                 'td.epi-uif-data-table-cell.mdc-data-table__cell.rmwc-data-table__cell span.orderNumberLink'
             );
-            if (!cell) return false;
-            return cell.innerText.trim() !== initial;
-        },
-        { timeout: 60000 },
-        initialOrderNumber
-    );
+            return cell ? cell.innerText.trim() : null;
+        });
 
-    // select all checkboxes on the page
-    await page.evaluate(() => {
-        const checkboxDiv = document.querySelector(
-            'div.mdc-ripple-upgraded--unbounded.mdc-ripple-upgraded.epi-uif-checkbox.mdc-data-table__header-row-checkbox.mdc-checkbox--upgraded.mdc-checkbox'
+        // console.log(`Initial Order Number: ${initialOrderNumber}`);
+
+        // Now wait until it changes
+        await page.waitForFunction(
+            (initial) => {
+                const cell = document.querySelector(
+                    'td.epi-uif-data-table-cell.mdc-data-table__cell.rmwc-data-table__cell span.orderNumberLink'
+                );
+                if (!cell) return false;
+                return cell.innerText.trim() !== initial;
+            },
+            { timeout: 60000 },
+            initialOrderNumber
         );
-        if (checkboxDiv) {
-            const checkboxInput = checkboxDiv.querySelector(
-                'input[type="checkbox"]'
+
+        // select all checkboxes on the page
+        await page.evaluate(() => {
+            const checkboxDiv = document.querySelector(
+                'div.mdc-ripple-upgraded--unbounded.mdc-ripple-upgraded.epi-uif-checkbox.mdc-data-table__header-row-checkbox.mdc-checkbox--upgraded.mdc-checkbox'
             );
-            if (checkboxInput) {
-                checkboxInput.click();
+            if (checkboxDiv) {
+                const checkboxInput = checkboxDiv.querySelector(
+                    'input[type="checkbox"]'
+                );
+                if (checkboxInput) {
+                    checkboxInput.click();
+                }
             }
-        }
-    });
+        });
 
-    // 6. Wait for "Selected" number to appear
-    await page.waitForSelector('span.axiom-typography--body', {
-        visible: true,
-    });
+        // 6. Wait for "Selected" number to appear
+        await page.waitForSelector('span.axiom-typography--body', {
+            visible: true,
+        });
 
-    // 7. Read the "Selected" number
-    const selectedNumber = await page.evaluate(() => {
-        const span = document.querySelector('span.axiom-typography--body');
-        if (span) {
-            const match = span.innerText.match(/\d+/); // extract first number
-            return match ? parseInt(match[0], 10) : 0;
-        }
+        // 7. Read the "Selected" number
+        const selectedNumber = await page.evaluate(() => {
+            const span = document.querySelector('span.axiom-typography--body');
+            if (span) {
+                const match = span.innerText.match(/\d+/); // extract first number
+                return match ? parseInt(match[0], 10) : 0;
+            }
+            return 0;
+        });
+
+        page.close();
+        return (highestPage - 1) * 50 + selectedNumber; // 50 is the number of items per page
+    } catch (error) {
         return 0;
-    });
-
-    page.close();
-    return (highestPage - 1) * 50 + selectedNumber; // 50 is the number of items per page
+    }
 }
 
 async function addDataToSheet(SPREADSHEET_ID, number1, number2) {
