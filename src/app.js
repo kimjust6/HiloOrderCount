@@ -46,7 +46,7 @@ require('dotenv').config();
     console.log(`Number of Pending Transfer to CRM: ${numberOfPages}`);
 
     const numberOfPages2 = await getMaxPageCount(
-        'https://www.hiloenergie.com/EPiServer/Commerce/OrderManagement#/?type=Order&status=SentToCrm&createdOn=Apr%2025%2C%202025-Apr%2026%2C%202025',
+        'https://www.hiloenergie.com/EPiServer/Commerce/OrderManagement#/?type=Order&status=SentToCrm&createdOn=Apr%2025%2C%202025-Apr%2029%2C%202025',
         browser,
         page
     );
