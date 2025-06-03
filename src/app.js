@@ -170,7 +170,7 @@ async function getMaxPageCount(url, browser, page) {
 
 async function addDataToSheet(SPREADSHEET_ID, number1, number2) {
     // CONFIGURATION
-    const SHEET_NAME = 'Sheet1'; // Adjust if your tab name is different
+    const SHEET_NAME = 'Sheet2'; // Adjust if your tab name is different
     const SERVICE_ACCOUNT_FILE = path.join(
         './keys/',
         'hilo-puppeteer-31270d897ca4.json'
