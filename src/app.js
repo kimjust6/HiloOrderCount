@@ -13,7 +13,7 @@ require('dotenv').config();
 
     // Go to login page
     await page.goto(
-        'https://www.hiloenergie.com/Util/Login?ReturnUrl=https://www.hiloenergie.com/EPiServer/Commerce/OrderManagement#/?type=Order&createdOn=Apr%2025%2C%202025-Apr%2026%2C%202025',
+        'https://www.hiloenergie.com/Util/Login?ReturnUrl=https://www.hiloenergie.com/EPiServer/Commerce/OrderManagement#/?type=Order&createdOn=Apr%2025%2C%202025-Apr%2027%2C%202025',
         { waitUntil: 'networkidle2' }
     );
 
@@ -46,7 +46,7 @@ require('dotenv').config();
     console.log(`Number of Pending Transfer to CRM: ${numberOfPages}`);
 
     const numberOfPages2 = await getMaxPageCount(
-        'https://www.hiloenergie.com/EPiServer/Commerce/OrderManagement#/?type=Order&status=SentToCrm&createdOn=Apr%2025%2C%202025-Apr%2029%2C%202025',
+        'https://www.hiloenergie.com/EPiServer/Commerce/OrderManagement#/?type=Order&status=SentToCrm&createdOn=Apr%2025%2C%202025-Apr%2029%2C%202029',
         browser,
         page
     );
@@ -161,7 +161,7 @@ async function getMaxPageCount(url, browser, page) {
             return 0;
         });
 
-        page.close();
+        // page.close();
         return (highestPage - 1) * 50 + selectedNumber; // 50 is the number of items per page
     } catch (error) {
         return 0;
